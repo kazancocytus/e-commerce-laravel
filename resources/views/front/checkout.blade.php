@@ -50,7 +50,7 @@
 
                                 <div class="col-md-12">
                                     <div class="mb-3">
-                                        <select name="country   " id="country" class="form-control">
+                                        <select name="country" id="country" class="form-control">
                                             <option value="">Select a Country</option>
                                             @if ($countries->isNotEmpty())
                                                 @foreach ($countries as $country)
@@ -179,15 +179,17 @@
                             <div class="mb-3">
                                 <label for="card_number" class="mb-2">Card Number</label>
                                 <input type="text" name="card_number" id="card_number" placeholder="Valid Card Number" class="form-control">
+                                <p></p>
                             </div>
                             <div class="row">
-                                <div class="col-md-6">
+                                <!-- <div class="col-md-6">
                                     <label for="expiry_date" class="mb-2">Expiry Date</label>
                                     <input type="text" name="expiry_date" id="expiry_date" placeholder="MM/YYYY" class="form-control">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="expiry_date" class="mb-2">CVV Code</label>
-                                    <input type="text" name="expiry_date" id="expiry_date" placeholder="123" class="form-control">
+                                </div> -->
+                                <div class="mb-3">
+                                    <label for="cvv_code" class="mb-2">CVV Code</label>
+                                    <input type="password" name="cvv_code" id="cvv_code" placeholder="1234" class="form-control">
+                                    <p></p>
                                 </div>
                             </div>
                         </div>                        
@@ -329,6 +331,26 @@
                             .html(errors.mobile)
                     } else {
                         $("#mobile").removeClass('is-invalid')
+                            .siblings('p').removeClass('invalid-feedback')
+                            .html('')
+                    }
+
+                    if (errors.cvv_code) {
+                        $("#cvv_code").addClass('is-invalid')
+                            .siblings('p').addClass('invalid-feedback')
+                            .html(errors.cvv_code)
+                    } else {
+                        $("#mobile").removeClass('is-invalid')
+                            .siblings('p').removeClass('invalid-feedback')
+                            .html('')
+                    }
+                    
+                    if (errors.card_number) {
+                        $("#card_number").addClass('is-invalid')
+                            .siblings('p').addClass('invalid-feedback')
+                            .html(errors.card_number)
+                    } else {
+                        $("#card_number").removeClass('is-invalid')
                             .siblings('p').removeClass('invalid-feedback')
                             .html('')
                     }

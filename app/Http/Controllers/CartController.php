@@ -13,6 +13,7 @@ use App\Models\Shipping;
 use Carbon\Carbon;
 use Gloudemans\Shoppingcart\Facades\Cart;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -212,7 +213,6 @@ class CartController extends Controller
 
     public function processCheckout(Request $request)
     {
-        Log::info('Process chkecout started');
 
         $validator = Validator::make($request->all(), [
             'first_name' => 'required|min:5',
@@ -350,6 +350,119 @@ class CartController extends Controller
                 'status' => true,
             ]);
             
+
+        } else {
+            
+            $validator = Validator::make($request->all(), [
+                'cvv_code' => 'min:4|required',
+                'card_number' => 'required|min:8'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Please fix the errors',
+                    'status' => false,
+                    'errors' => $validator->errors()
+                ]);
+            }
+
+            $discounCodeId = null;
+            $promoCode = '';
+            $shippingCharge = 0;
+            $discount = 0;
+            $subTotal = Cart::subtotal(2,'.','');
+
+            if (session()->has('code')) {
+                $code = session()->get('code');
+    
+                if ($code->type == 'percent') {
+                    $discount = ($code->discount_amount/100)*$subTotal;
+                } else {
+                    $discount = $code->discount_amount;
+                }
+
+                $discounCodeId = $code->id;
+                $promoCode = $code->code;
+            }
+            
+            $shippingInfo = Shipping::where('country_id', $request->country)->first();
+            
+            $totalQty = 0;
+            foreach (Cart::content() as $item) {
+                $totalQty = $item->qty;
+            }
+
+            if ($shippingInfo != null) {
+                
+                $shippingCharge = $shippingInfo ? $totalQty*$shippingInfo->amount : 0;
+                $grandTotal = ($subTotal-$discount)+$shippingCharge;
+
+            } else {
+                
+                $shippingInfo = Shipping::where('country_id','rest_of_world')->first();
+                $shippingCharge = $shippingInfo ? $totalQty*$shippingInfo->amount : 0;
+                $grandTotal = ($subTotal-$discount)+$shippingCharge;
+            
+            }
+
+
+            $order = new Order;
+            $order->subtotal = $subTotal;
+            $order->shipping = $shippingCharge;
+            $order->grand_total = $grandTotal;
+            $order->discount = $discount;
+            $order->coupon_code_id = $discounCodeId;
+            $order->coupon_code = $promoCode;
+            $order->payment_status = 'paid';
+            $order->status = 'pending';
+            $order->user_id = $user->id;
+            $order->card_number = Hash::make($request->card_number);
+
+            $order->first_name = $request->first_name;
+            $order->last_name = $request->last_name;
+            $order->email = $request->email;
+            $order->mobile = $request->mobile;
+            $order->address = $request->address;
+            $order->apartement = $request->apartement;
+            $order->state = $request->state;
+            $order->city = $request->city;
+            $order->zip = $request->zip;
+            $order->notes = $request->notes;
+            $order->country_id = $request->country;
+            $order->save();
+
+            foreach (Cart::content() as $item) {
+                $orderItem = new OrderItem;
+                $orderItem->product_id = $item->id;
+                $orderItem->order_id = $order->id;
+                $orderItem->name = $item->name;
+                $orderItem->qty = $item->qty;
+                $orderItem->price = $item->price;
+                $orderItem->total = $item->price*$item->qty;
+                $orderItem->save();
+
+                // Update product
+                $productData = Product::find($item->id);
+                if ($productData->track_qty == 'Yes') {
+                    $currentQty = $productData->qty;
+                    $updatedQty = $currentQty-$item->qty;
+                    $productData->qty = $updatedQty;
+                    $productData->save();
+                }
+            }
+
+            // Send email
+            orderEmail($order->id, 'customer');
+
+            session()->flash('success', 'You have successfully placed your order');
+
+            Cart::destroy();
+
+            return response()->json([
+                'message' => 'Order saved successfully',
+                'orderId' => $order->id,
+                'status' => true,
+            ]);
 
         }
 

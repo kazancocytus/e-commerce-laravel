@@ -67,5 +67,7 @@
         </tbody>
     </table>
 
+    <h2>Thank you for shopping at ZEAL E-commerce</h2>
+
 </body>
 </html>
