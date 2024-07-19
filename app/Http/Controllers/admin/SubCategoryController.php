@@ -63,7 +63,7 @@ class SubCategoryController extends Controller
             $subCategory->categories_id = $request->category;
             $subCategory->save();
 
-            $request->session()->flash('success', 'Sub categories created successfully');
+            session()->flash('success', 'Sub categories created successfully');
 
             return response()->json([
                 'status' => true,
@@ -84,7 +84,7 @@ class SubCategoryController extends Controller
         $subCategories = SubCategory::find($subCategoriesId);
 
         if (empty($subCategories)) {
-            $request->session()->flash('error', 'Record not found');
+            session()->flash('error', 'Record not found');
             return redirect()->route('sub-categories.index');
         }
 
@@ -124,7 +124,7 @@ class SubCategoryController extends Controller
             $subCategories->categories_id = $request->category;
             $subCategories->save();
 
-            $request->session()->flash('success', 'Sub categories updated successfully');
+            session()->flash('success', 'Sub categories updated successfully');
 
             return response()->json([
                 'status' => true,
@@ -145,7 +145,7 @@ class SubCategoryController extends Controller
         $subCategories = SubCategory::find($subCategoriesId);
 
         if (empty($subCategories)) {
-            $request->session()->flash('error', 'Subcategory not found');
+            session()->flash('error', 'Subcategory not found');
             return redirect()->route('sub-categories.index');
             return response()->json([
                 'status' => false,
@@ -156,7 +156,7 @@ class SubCategoryController extends Controller
 
         $subCategories->delete();
 
-        $request->session()->flash('success', 'SubCategory deleted successfully');
+        session()->flash('success', 'SubCategory deleted successfully');
 
         return response()->json([
             'status' => true,

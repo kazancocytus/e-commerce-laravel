@@ -68,6 +68,9 @@ Route::post('/remove-discount', [CartController::class, 'removeDiscount'])->name
 Route::group(['prefix' => 'account'],function() {
     Route::group(['middleware' => 'guest'],function() {
         Route::get('/register', [AuthController::class, 'register'])->name('register');
+        Route::get('/otp-page', [AuthController::class, 'otpPage'])->name('otp-page');
+        Route::post('/send-otp', [AuthController::class, 'validateOtp'])->name('send-otp');
+        Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->name('resend-otp');
         Route::post('/process-register', [AuthController::class, 'processRegister'])->name('processRegister');
 
         Route::get('/login', [AuthController::class, 'login'])->name('login');
@@ -107,7 +110,7 @@ Route::group(['prefix' => 'admin'], function(){
 
     Route::group(['middleware' => 'admin.auth'], function(){
         
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+        Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
         Route::get('/change-password', [SettingController::class, 'showChangePassword'])->name('show-page-change-password');
         Route::post('/change-password', [SettingController::class, 'proccessChangePassword'])->name('proccess-change-password-admin');
         Route::get('/logout', [DashboardController::class, 'logout'])->name('admin.logout');

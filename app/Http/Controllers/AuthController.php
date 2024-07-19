@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\OtpMail;
 use App\Mail\ResetPasswordMail;
 use App\Models\Country;
 use App\Models\Order;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Redis;
 
 class AuthController extends Controller
 {
@@ -30,31 +32,39 @@ class AuthController extends Controller
         return view('front.account.register');
     }
 
+    public function otpPage()
+    {
+        return view('front.account.otp-page');
+    }
+
     public function processRegister(Request $request)
     {
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:4',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:5|confirmed',
+            'password' => 'required|min:4|confirmed',
+            'phone' => 'required|numeric|min:12'
         ]);
 
         if ($validator->passes()) {
+            $otp = rand(10000, 99999);
+            session(['otp' => $otp, 'otp_email' => $request->email, 'otp_expired' => now()->addMinutes(15)]);
 
-            $user = new User();
-            $user->name = $request->name;
-            $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->password = Hash::make($request->password);
-            $user->save();
+            Mail::to($request->email)->send(new OtpMail($otp));
 
-            session()->flash('success', 'Registed successfully');
+            session([
+                'registration_data' => $request->only('name','email','password','phone')
+            ]);
+
+            $message = 'OTP send successfully';
+
+            session()->flash('success', $message);
 
             return response()->json([
                 'status' => true,
-                'message' => 'success', 'Register successfully'
+                'message' => 'success', $message
             ]);
-
         } else {
             return response()->json([
                 'status' => false,
@@ -62,6 +72,113 @@ class AuthController extends Controller
             ]);
         }
 
+    }
+
+    public function validateOtp(Request $request)
+    {
+        
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'error' => $validator->errors()
+            ]);
+        }
+
+        $registrationData = session('registration_data');
+        if (!$registrationData) {
+            return response()->json([
+                'message' => 'Session expired, please register again'
+            ]);
+        }
+
+        $storedOtp = session('otp');
+        $storedOtpEmail = session('otp_email');
+        $otpExpired = session('otp_expired');
+
+        if ($validator->passes()) {
+            if ($storedOtp && $storedOtp == $request->otp && $storedOtpEmail == $registrationData['email'] && now()->lessThanOrEqualTo($otpExpired)) {
+                $user = new User();
+                $user->name = $registrationData['name'];
+                $user->email = $registrationData['email'];
+                $user->password = Hash::make($registrationData['password']);
+                $user->phone = $registrationData['phone'];
+                $user->save();
+    
+                session()->forget('registration_data', 'otp', 'otp_email', 'otp_expired');
+    
+                $message = 'Register account successfully';
+    
+                session()->flash('success', $message);
+    
+                return response()->json([
+                    'status' => true,
+                    'message' => 'success', $message
+                ]);
+
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'error' => 'Invalid OTP or Expired OTP'
+                ]);
+            }
+            
+        } else {
+            return response()->json([
+                'status' => false,
+                'error' => $validator->errors()
+            ]);
+        }
+        
+    }
+
+    public function resendOtp(Request $request)
+    {
+
+        Validator::make($request->all(), [
+            'email' => 'required|email'
+        ]);
+        
+        $email = $request->email;
+
+        if ($email !== session('otp_email')) {
+            return response()->json([
+                'status' => false,
+                'error' => 'Email Missmatch'
+            ]);
+        }
+
+        if (session('otp_expired') && now()->lessThanOrEqualTo(session('otp_expired'))) {
+            return response()->json([
+                'status' => false,
+                'message' => 'OTP is still valid. Please use the existing OTP'
+            ]);
+        } 
+
+        session()->forget('otp');
+        session()->forget('otp_expired');
+
+        $otp = rand(100000, 999999);
+        $otpExpired = now()->addMinutes(15);
+
+        session([
+            'otp' => $otp,
+            'otp_expired' => $otpExpired,
+            'otp_email' => $email        
+        ]);
+
+        Mail::to($email)->send(new OtpMail($otp));
+
+        $message = 'Resend OTP success';
+
+        return response()->json([
+            'status' => true,
+            'message' => $message
+        ]);
+       
     }
 
     public function authenticate(Request $request)

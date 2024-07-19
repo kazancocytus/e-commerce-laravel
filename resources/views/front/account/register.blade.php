@@ -29,6 +29,7 @@
                     </div>
                     <div class="form-group">
                         <input type="text" class="form-control" placeholder="Phone" id="phone" name="phone">
+                        <p></p>
                     </div>
                     <div class="form-group">
                         <input type="password" class="form-control" placeholder="Password" id="password" name="password">
@@ -95,6 +96,15 @@
                     $("#password").siblings("p").removeClass('invalid-feedback').html('');
                     $("#password").removeClass('is-invalid')
                 }
+
+                if (error.phone) {
+                    $("#phone").siblings("p").addClass('invalid-feedback').html(error.phone);
+                    $("#phone").addClass('is-invalid')
+                } else {
+                    $("#phone").siblings("p").removeClass('invalid-feedback').html('');
+                    $("#phone").removeClass('is-invalid')
+                }
+
             } else {
 
                 $("#name").siblings("p").removeClass('invalid-feedback').html('');
@@ -105,8 +115,11 @@
 
                 $("#password").siblings("p").removeClass('invalid-feedback').html('');
                 $("#password").removeClass('is-invalid')
+                
+                $("#phone").siblings("p").removeClass('invalid-feedback').html('');
+                $("#phone").removeClass('is-invalid')
 
-                window.location.href = "{{ route('login') }}"
+                window.location.href = "{{ route('otp-page') }}"
 
             }
 

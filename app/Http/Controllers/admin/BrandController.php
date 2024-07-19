@@ -50,7 +50,7 @@ class BrandController extends Controller
             $brands->status = $request->status;
             $brands->save();
 
-            $request->session()->flash('success', 'Brands created successfully');
+            session()->flash('success', 'Brands created successfully');
 
             return response()->json([
                 'status' => true,
@@ -73,7 +73,7 @@ class BrandController extends Controller
 
         $brands = Brand::find($brandId);
         if (empty($brands)) {
-            $request->session()->flash('error', 'Brands not found');
+            session()->flash('error', 'Brands not found');
             return redirect()->route('brands.index');
         }
 
@@ -107,7 +107,7 @@ class BrandController extends Controller
             $brands->status = $request->status;
             $brands->save();
 
-            $request->session()->flash('success', 'Brands updated successfully');
+            session()->flash('success', 'Brands updated successfully');
 
             return response()->json([
                 'status' => true,
@@ -131,7 +131,7 @@ class BrandController extends Controller
 
         $brands = Brand::find($brandId);
         if (empty($brands)) {
-            $request->session()->flash('error', 'Brands not found');
+            session()->flash('error', 'Brands not found');
             return response()->json([
                 'status' => false,
                 'message' => 'error', 'Brands not found'
@@ -140,7 +140,7 @@ class BrandController extends Controller
 
         $brands->delete();
 
-        $request->session()->flash('success', 'Brands delete successfuly');
+        session()->flash('success', 'Brands delete successfuly');
 
         return response()->json([
             'status' => true,
