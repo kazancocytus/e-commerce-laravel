@@ -104,6 +104,8 @@ Route::group(['prefix' => 'admin'], function(){
     Route::group(['middleware' => 'admin.guest'], function(){
         
         Route::get('/login', [AdminLoginController::class, 'index'])->name('admin.login');
+        Route::get('/forgot-password-page', [AdminLoginController::class, 'showForgotPasswordPage'])->name('admin.forgot-password');
+        Route::post('/proccess-forgot-password', [AdminLoginController::class, 'proccessForgotPassword'])->name('admin.proccess-forgot-password');
         Route::post('/authenticate', [AdminLoginController::class, 'authenticate'])->name('admin.authenticate');
 
     });

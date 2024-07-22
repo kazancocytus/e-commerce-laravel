@@ -21,6 +21,17 @@ class ProductController extends Controller
     public function index(Request $request)
     {
 
+        $perPage = $request->input('pagination', 15);
+
+        $perPage = filter_var($perPage, FILTER_VALIDATE_INT, [
+            'options' => [
+                'default' => 15,
+                'min_range' => 5,
+                'max_range' => 25
+            ],
+        ]);
+
+
         $keyword = $request->get('keyword');
 
         $query = Product::latest('id')
@@ -31,8 +42,10 @@ class ProductController extends Controller
             $query = $query->where('title', 'like', '%'. $keyword .'%');
         }
 
-        $product = $query->paginate(15);
+        $product = $query->paginate($perPage);
         $data['product']= $product;
+        $data['perPage'] = $perPage;
+        $data['keyword'] = $keyword;
 
         return view('admin.products.list', $data);
     }
@@ -52,8 +65,6 @@ class ProductController extends Controller
 
     public function store(Request $request) 
     {
-
-        dd($request->all());
 
         $rules = [
             'title' => 'required',

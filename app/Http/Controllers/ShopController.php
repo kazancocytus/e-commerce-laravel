@@ -19,6 +19,16 @@ class ShopController extends Controller
         $categoriesSelected = '';
         $subCategoriesSelected = '';
         $brandsArray = [];
+
+        $perPage = $request->input('pagination', 6);
+
+        $perPage = filter_var($perPage, FILTER_VALIDATE_INT, [
+            'options' => [
+                'default' => 6,
+                'min_range' => 6,
+                'max_range' => 14   
+            ],
+        ]);
             
 
         $categories = Category::orderBy('name', 'ASC')
@@ -84,7 +94,7 @@ class ShopController extends Controller
         }
 
 
-        $product = $products->paginate(6);
+        $product = $products->paginate($perPage);
         
         $data['categories'] = $categories;
         $data['brands'] = $brands;
@@ -95,6 +105,8 @@ class ShopController extends Controller
         $data['priceMax'] = intval($priceMax);
         $data['priceMin'] = intval($priceMin);
         $data['sort'] = $request->get('sort');
+        $data['perPage'] = $perPage;
+
 
 
         return view('front.shop',$data);

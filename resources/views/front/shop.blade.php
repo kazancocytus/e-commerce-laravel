@@ -88,10 +88,18 @@
                 </div>
                 <div class="col-md-9">
                     <div class="row pb-3">
+                        <form action="">
                         <div class="col-12 pb-1">
                             <div class="d-flex align-items-center justify-content-end mb-4">
                                 <div class="ml-2">
-                                    <select name="sort" id="sort" class="form-control">
+                                    <select name="pagination" id="pagination" class="form-control" onchange="this.form.submit()">
+                                        <option value="6" {{ request('pagination') == 6 ? 'selected' : '' }}>6</option>
+                                        <option value="8" {{ request('pagination') == 8 ? 'selected' : '' }}>8</option>
+                                        <option value="10" {{ request('pagination') == 10 ? 'selected' : '' }}>10</option>
+                                        <option value="12" {{ request('pagination') == 12 ? 'selected' : '' }}>12</option>
+                                        <option value="14" {{ request('pagination') == 14 ? 'selected' : '' }}>14</option>
+                                    </select>
+                                    <select name="sort" id="sort" class="form-control" onchange="this.form.submit()">
                                         <option {{ $sort == 'latest' ? 'selected' : '' }} value="latest">Latest</option>
                                         <option {{ $sort == 'price_desc' ? 'selected' : '' }} value="price_desc">Price High</option>
                                         <option {{ $sort == 'price_asc' ? 'selected' : '' }} value="price_asc">Price Low</option>
@@ -99,6 +107,8 @@
                                 </div>
                             </div>
                         </div>
+                        </form>
+                                
                         
                         @if ($product->isNotEmpty())
                             @foreach ($product as $products)
@@ -127,7 +137,7 @@
                                                 </a>        
                                                 @endif
                                             @else
-                                            <a href="javascript:void(0)" onclick="addToCart('{{ $product->id }}')" class="btn btn-dark">Add To Cart
+                                            <a href="javascript:void(0)" onclick="addToCart('{{ $products->id }}')" class="btn btn-dark">Add To Cart
                                                 <i class="fa fa-shopping-cart"></i>
                                             </a>     
                                             @endif
@@ -148,7 +158,7 @@
                         @endif
 
                         <div class="col-md-12 pt-5">
-                            {{ $product->withQueryString()->links() }}
+                            {{ $product->appends(request()->query())->links() }}
                         </div>
                     </div>
                 </div>

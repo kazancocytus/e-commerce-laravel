@@ -25,6 +25,15 @@
 							<div class="card-header">
                                 <div class="card-title">
                                     <button type="button" onclick="window.location.href='{{ route("product.index") }}'" class="btn btn-default btn-sm">Reset</button>
+									<br>
+									<br>
+									<select name="pagination" id="pagination" class="form-control" onchange="this.form.submit()">
+										<option value="5" {{ request('pagination') == 5 ? 'selected' : '' }}>5</option>
+										<option value="10" {{ request('pagination') == 10 ? 'selected' : '' }}>10</option>
+										<option value="15" {{ request('pagination') == 15 ? 'selected' : '' }}>15</option>
+										<option value="20" {{ request('pagination') == 20 ? 'selected' : '' }}>20</option>
+										<option value="25" {{ request('pagination') == 25 ? 'selected' : '' }}>25</option>
+									</select>
                                 </div>
 								<div class="card-tools">
 									<div class="input-group input-group" style="width: 250px;">
@@ -111,7 +120,7 @@
 								</table>										
 							</div>
 							<div class="card-footer clearfix">
-								{{ $product->links() }}
+								{{ $product->appends(['pagination' => $perPage, 'keyword' => $keyword])->links() }}
 							</div>
 						</div>
 					</div>
